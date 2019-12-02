@@ -1,1 +1,5 @@
-# advent_of_code_2019
+# Advent of code 2019
+
+My solutions to the Advent of code 2019 challenges in Rust.
+
+Get involved with [Advent of code](https://adventofcode.com/)
