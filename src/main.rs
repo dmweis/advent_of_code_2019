@@ -2,10 +2,13 @@
 
 mod day_one;
 mod day_two;
+mod day_three;
 
 // use day_one::*;
-use day_two::*;
+use day_three::*;
 
 fn main() {
+    one();
+    println!("");
     two();
 }
