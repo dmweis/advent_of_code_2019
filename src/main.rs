@@ -9,7 +9,7 @@ mod day_four;
 use day_four::*;
 
 fn main() {
-    one();
+    two();
     // println!("");
     // two();
 }
