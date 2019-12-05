@@ -41,8 +41,11 @@ fn load_param(data: &Vec<i32>, index: usize, mode: ParamMode) -> i32 {
     }
 }
 
-pub fn process_intcode(program: &mut Vec<i32>) {
+pub fn process_intcode(program: &mut Vec<i32>, input: Option<Vec<i32>>) -> Vec<i32> {
+    let io_std = input.is_none();
+    let mut input = input.unwrap_or_default();
     let mut program_counter = 0;
+    let mut output_buffer = vec![];
     loop {
         let op = program[program_counter];
         match get_op_code(op) {
@@ -64,16 +67,27 @@ pub fn process_intcode(program: &mut Vec<i32>) {
             },
             3 => {
                 // input
-                println!("Write input pls");
-                let input = read().unwrap();
+                let user_input = if io_std {
+                    println!("Write input pls");
+                    read()
+                        .unwrap()
+                        .trim()
+                        .parse()
+                        .unwrap()
+                } else {
+                    input.pop().unwrap()
+                };
                 let output_location = program[program_counter + 1] as usize;
-                program[output_location] = input.trim().parse().unwrap();
+                program[output_location] = user_input;
                 program_counter += 2;
             },
             4 => {
                 // input
                 let output = load_param(program, program_counter + 1, get_param_mode(op, 0));
-                println!("output: {}", output);
+                if io_std {
+                    println!("output: {}", output);
+                }
+                output_buffer.push(output);
                 program_counter += 2;
             },
             99 => {
@@ -82,6 +96,7 @@ pub fn process_intcode(program: &mut Vec<i32>) {
             _ => panic!("Error at {}", program_counter),
         }
     }
+    output_buffer
 }
 
 
@@ -117,14 +132,21 @@ mod tests {
     #[test]
     fn test_computer_one() {
         let mut input = vec![1002,4,3,4,33];
-        process_intcode(&mut input);
+        process_intcode(&mut input, None);
         assert_eq!(input, vec![1002,4,3,4,99]);
     }
 
     #[test]
     fn test_computer_two() {
         let mut input = vec![1101,100,-1,4,0];
-        process_intcode(&mut input);
+        process_intcode(&mut input, None);
         assert_eq!(input, vec![1101,100,-1,4,99]);
+    }
+
+    #[test]
+    fn test_computer_input() {
+        let mut program = load_input("input/day_five.txt");
+        let output = process_intcode(&mut program, Some(vec![1]));
+        assert_eq!(output.last(), Some(&9006673));
     }
 }
