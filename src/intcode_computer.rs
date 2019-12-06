@@ -241,4 +241,76 @@ mod tests {
         let output = process_intcode(&mut program, Some(input));
         assert_eq!(output, vec![0]);
     }
+
+    #[test]
+    fn less_than_8_pos_mode_yes() {
+        let mut program = vec![3,9,7,9,10,9,4,9,99,-1,8];
+        let input = vec![2];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![1]);
+    }
+
+    #[test]
+    fn less_than_8_pos_mode_no() {
+        let mut program = vec![3,9,7,9,10,9,4,9,99,-1,8];
+        let input = vec![8];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![0]);
+    }
+
+    #[test]
+    fn is_8_ime_mode_yes() {
+        let mut program = vec![3,3,1108,-1,8,3,4,3,99];
+        let input = vec![8];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![1]);
+    }
+
+    #[test]
+    fn is_8_ime_mode_no() {
+        let mut program = vec![3,3,1108,-1,8,3,4,3,99];
+        let input = vec![2];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![0]);
+    }
+
+    #[test]
+    fn less_than_8_ime_mode_yes() {
+        let mut program = vec![3,3,1107,-1,8,3,4,3,99];
+        let input = vec![2];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![1]);
+    }
+
+    #[test]
+    fn less_than_8_ime_mode_no() {
+        let mut program = vec![3,3,1107,-1,8,3,4,3,99];
+        let input = vec![8];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![0]);
+    }
+
+    #[test]
+    fn long_test_day5_task_2() {
+        let mut program = vec![3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,
+        1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
+        999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99];
+        let input = vec![7];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![999]);
+
+        let mut program = vec![3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,
+        1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
+        999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99];
+        let input = vec![8];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![1000]);
+
+        let mut program = vec![3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,
+        1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
+        999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99];
+        let input = vec![9];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![1001]);
+    }
 }
