@@ -1,5 +1,6 @@
 use std::fs;
 use std::collections::{HashMap, VecDeque, HashSet};
+use std::error;
 
 fn read_file(path: &str) -> String {
     fs::read_to_string(path).expect("Something went wrong reading the file")
@@ -30,13 +31,12 @@ fn edges_to_undirected_graph<'a>(edges: &'a Vec<(&str, &str)>) -> HashMap<&'a st
     graph
 }
 
-fn breath_first_search(graph: &HashMap<&str, Vec<&str>>, start: &str, end: &str) -> Result<i32, &'static str> {
+fn breath_first_search(graph: &HashMap<&str, Vec<&str>>, start: &str, end: &str) -> Result<i32, Box<dyn error::Error>> {
     let mut visited = HashSet::new();
     let mut seen = VecDeque::new();
     seen.push_front((start, 0));
     while !seen.is_empty() {
-        let (node, depth) = seen.pop_back().unwrap();
-
+        let (node, depth) = seen.pop_back().ok_or("Seen queue is empty")?;
         if visited.contains(node) {
             continue;
         }
@@ -50,7 +50,7 @@ fn breath_first_search(graph: &HashMap<&str, Vec<&str>>, start: &str, end: &str)
             }
         }
     }
-    Err("End node not found")
+    Err("End node not found")?
 }
 
 fn count_orbits(graph: &HashMap<&str, Vec<&str>>) -> i32 {
@@ -130,8 +130,8 @@ mod tests {
         let text_input = "COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L\nK)YOU\nI)SAN";
         let parsed = parse_input(text_input);
         let graph = edges_to_undirected_graph(&parsed);
-        let distance = breath_first_search(&graph, "YOU", "SAN");
-        assert_eq!(distance, Ok(6));
+        let distance = breath_first_search(&graph, "YOU", "SAN").unwrap();
+        assert_eq!(distance, 6);
     }
 
     #[test]
@@ -139,8 +139,8 @@ mod tests {
         let text = read_file("input/day_six.txt");
         let parsed = parse_input(&text);
         let graph = edges_to_undirected_graph(&parsed);
-        let distance = breath_first_search(&graph, "YOU", "SAN");
+        let distance = breath_first_search(&graph, "YOU", "SAN").unwrap();
         // 229 + 2 because you are adding the orbit of YOU and SAN from the distance
-        assert_eq!(distance, Ok(229 + 2));
+        assert_eq!(distance, 229 + 2);
     }
 }
