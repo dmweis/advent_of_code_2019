@@ -6,10 +6,11 @@ mod day_three;
 mod day_four;
 mod day_five;
 mod intcode_computer;
+mod day_six;
 
 // use day_one::*;
-use day_five::*;
+use day_six::*;
 
 fn main() {
-    two();
+    one();
 }
