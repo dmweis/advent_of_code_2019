@@ -90,6 +90,50 @@ pub fn process_intcode(program: &mut Vec<i32>, input: Option<Vec<i32>>) -> Vec<i
                 output_buffer.push(output);
                 program_counter += 2;
             },
+            5 => {
+                // jump if true
+                let input = load_param(program, program_counter + 1, get_param_mode(op, 0));
+                let target = load_param(program, program_counter + 2, get_param_mode(op, 1));
+                if input != 0 {
+                    program_counter = target as usize;
+                } else {
+                    program_counter += 3;
+                }
+            },
+            6 => {
+                // jump if false
+                let input = load_param(program, program_counter + 1, get_param_mode(op, 0));
+                let target = load_param(program, program_counter + 2, get_param_mode(op, 1));
+                if input == 0 {
+                    program_counter = target as usize;
+                } else {
+                    program_counter += 3;
+                }
+            },
+            7 => {
+                // less than
+                let a = load_param(program, program_counter + 1, get_param_mode(op, 0));
+                let b = load_param(program, program_counter + 2, get_param_mode(op, 1));
+                let output = program[program_counter + 3] as usize;
+                program[output] = if a < b {
+                    1
+                } else {
+                    0
+                };
+                program_counter += 4;
+            },
+            8 => {
+                // equals
+                let a = load_param(program, program_counter + 1, get_param_mode(op, 0));
+                let b = load_param(program, program_counter + 2, get_param_mode(op, 1));
+                let output = program[program_counter + 3] as usize;
+                program[output] = if a == b {
+                    1
+                } else {
+                    0
+                };
+                program_counter += 4;
+            },
             99 => {
                 break;
             },
@@ -148,5 +192,53 @@ mod tests {
         let mut program = load_input("input/day_five.txt");
         let output = process_intcode(&mut program, Some(vec![1]));
         assert_eq!(output.last(), Some(&9006673));
+    }
+
+    #[test]
+    fn jump_if_true_yes_pos_mode() {
+        let mut program = vec![3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9];
+        let input = vec![6];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![1]);
+    }
+
+    #[test]
+    fn jump_if_true_no_pos_mode() {
+        let mut program = vec![3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9];
+        let input = vec![0];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![0]);
+    }
+
+    #[test]
+    fn jump_if_true_yes_ime_mode() {
+        let mut program = vec![3,3,1105,-1,9,1101,0,0,12,4,12,99,1];
+        let input = vec![6];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![1]);
+    }
+
+    #[test]
+    fn jump_if_true_no_ime_mode() {
+        let mut program = vec![3,3,1105,-1,9,1101,0,0,12,4,12,99,1];
+        let input = vec![0];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![0]);
+    }
+
+    #[test]
+    fn is_8_pos_mode_yes() {
+        let mut program = vec![3,9,8,9,10,9,4,9,99,-1,8];
+        let input = vec![8];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![1]);
+    }
+
+    #[test]
+    fn is_8_pos_mode_no() {
+        let mut program = vec![3,9,8,9,10,9,4,9,99,-1,8];
+        let input = vec![2];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![0]);
     }
 }
