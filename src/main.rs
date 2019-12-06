@@ -12,5 +12,5 @@ mod day_six;
 use day_six::*;
 
 fn main() {
-    one();
+    two();
 }
