@@ -11,7 +11,5 @@ mod intcode_computer;
 use day_five::*;
 
 fn main() {
-    one();
-    // println!("");
-    // two();
+    two();
 }

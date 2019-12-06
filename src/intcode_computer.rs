@@ -313,4 +313,12 @@ mod tests {
         let output = process_intcode(&mut program, Some(input));
         assert_eq!(output, vec![1001]);
     }
+
+    #[test]
+    fn day_5_task_2() {
+        let mut program = load_input("input/day_five.txt");
+        let input = vec![5];
+        let output = process_intcode(&mut program, Some(input));
+        assert_eq!(output, vec![3629692]);
+    }
 }
