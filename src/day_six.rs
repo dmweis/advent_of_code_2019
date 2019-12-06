@@ -35,12 +35,11 @@ fn breath_first_search(graph: &HashMap<&str, Vec<&str>>, start: &str, end: &str)
     let mut visited = HashSet::new();
     let mut seen = VecDeque::new();
     seen.push_front((start, 0));
-    while !seen.is_empty() {
-        let (node, depth) = seen.pop_back().ok_or("Seen queue is empty")?;
-        if visited.contains(node) {
+    while let Some((node, depth)) = seen.pop_back() {
+        // if node was visited already skip
+        if !visited.insert(node) {
             continue;
         }
-        visited.insert(node);
         if node == end {
             return Ok(depth);
         }
