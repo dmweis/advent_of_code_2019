@@ -44,6 +44,8 @@ fn load_param(data: &Vec<i32>, index: usize, mode: ParamMode) -> i32 {
 pub fn process_intcode(program: &mut Vec<i32>, input: Option<Vec<i32>>) -> Vec<i32> {
     let io_std = input.is_none();
     let mut input = input.unwrap_or_default();
+    // Reverse vector to read data in correct order
+    input.reverse();
     let mut program_counter = 0;
     let mut output_buffer = vec![];
     loop {
