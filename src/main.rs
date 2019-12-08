@@ -14,5 +14,5 @@ mod day_eight;
 use day_eight::*;
 
 fn main() {
-    one();
+    two();
 }
