@@ -8,4 +8,4 @@ edition = "2018"
 
 [dependencies]
 libmath = "0.2"
-itertools = "0.8"
+itertools = "0.8.2"
