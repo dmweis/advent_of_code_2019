@@ -10,9 +10,10 @@ mod day_six;
 mod day_seven;
 mod day_eight;
 mod infinite_memory_intcomputer;
+mod day_nine;
 
-use day_eight::*;
+use day_nine::*;
 
 fn main() {
-    two();
+    one();
 }

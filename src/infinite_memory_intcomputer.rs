@@ -1,5 +1,4 @@
 use std::fs;
-use std::io;
 use std::error::*;
 use std::collections::{VecDeque, HashMap};
 
@@ -54,7 +53,12 @@ impl IntcodeComputer {
         Ok(*self.memory.get(&location).unwrap_or(&0))
     }
 
-    fn write_memory(&mut self, location: i32, value: i64) -> Result<(), Box<dyn Error>> {
+    fn write_memory(&mut self, location: i32, value: i64, mode: ParamMode) -> Result<(), Box<dyn Error>> {
+        let location = match mode {
+            ParamMode::ImmediateMode => panic!("wrong param mode for write"),
+            ParamMode::PositionMode => location,
+            ParamMode::RelativeMode => location + self.relative_base,
+        };
         if location < 0 {
             Err("Writing memory in negative index")?;
         }
@@ -70,7 +74,8 @@ impl IntcodeComputer {
                 Ok(self.read_memory(&(absolute_position as i32))?)
             },
             ParamMode::RelativeMode => {
-                panic!("LOLOLOL")
+                let relative_position = self.read_memory(location)? as i32;
+                Ok(self.read_memory(&(relative_position + self.relative_base))?)
             }
         }
     }
@@ -94,7 +99,7 @@ impl IntcodeComputer {
                     let a = self.load_param(&(self.instruction_pointer + 1), get_param_mode(op, 0))?;
                     let b = self.load_param(&(self.instruction_pointer + 2), get_param_mode(op, 1))?;
                     let output_location = self.load_param(&(self.instruction_pointer + 3), ParamMode::ImmediateMode)?;
-                    self.write_memory(output_location as i32, a + b)?;
+                    self.write_memory(output_location as i32, a + b, get_param_mode(op, 2))?;
                     self.instruction_pointer += 4;
                 },
                 2 => {
@@ -102,14 +107,14 @@ impl IntcodeComputer {
                     let a = self.load_param(&(self.instruction_pointer + 1), get_param_mode(op, 0))?;
                     let b = self.load_param(&(self.instruction_pointer + 2), get_param_mode(op, 1))?;
                     let output_location = self.load_param(&(self.instruction_pointer + 3), ParamMode::ImmediateMode)?;
-                    self.write_memory(output_location as i32, a * b)?;
+                    self.write_memory(output_location as i32, a * b, get_param_mode(op, 2))?;
                     self.instruction_pointer += 4;
                 },
                 3 => {
                     // input
-                    let output_location = self.load_param(&(self.instruction_pointer + 1), ParamMode::ImmediateMode)?;
+                    let output_location = self.load_param(&(self.instruction_pointer + 1), ParamMode::ImmediateMode)? as i32;
                     if let Some(value) = self.input_queue.pop_front() {
-                        self.write_memory(output_location as i32, value)?;
+                        self.write_memory(output_location, value, get_param_mode(op, 0))?;
                         self.instruction_pointer += 2;
                     } else {
                         return Ok(IntcodeComputerState::WaitingForInput);
@@ -146,7 +151,7 @@ impl IntcodeComputer {
                     let a = self.load_param(&(self.instruction_pointer + 1), get_param_mode(op, 0))?;
                     let b = self.load_param(&(self.instruction_pointer + 2), get_param_mode(op, 1))?;
                     let output_location = self.load_param(&(self.instruction_pointer + 3), ParamMode::ImmediateMode)?;
-                    self.write_memory(output_location as i32, if a < b { 1 } else { 0 })?;
+                    self.write_memory(output_location as i32, if a < b { 1 } else { 0 }, get_param_mode(op, 2))?;
                     self.instruction_pointer += 4;
                 },
                 8 => {
@@ -154,9 +159,15 @@ impl IntcodeComputer {
                     let a = self.load_param(&(self.instruction_pointer + 1), get_param_mode(op, 0))?;
                     let b = self.load_param(&(self.instruction_pointer + 2), get_param_mode(op, 1))?;
                     let output_location = self.load_param(&(self.instruction_pointer + 3), ParamMode::ImmediateMode)?;
-                    self.write_memory(output_location as i32, if a == b { 1 } else { 0 })?;
+                    self.write_memory(output_location as i32, if a == b { 1 } else { 0 }, get_param_mode(op, 2))?;
                     self.instruction_pointer += 4;
                 },
+                9 => {
+                    // shift relative base
+                    let a = self.load_param(&(self.instruction_pointer + 1), get_param_mode(op, 0))? as i32;
+                    self.relative_base += a;
+                    self.instruction_pointer += 2;
+                }
                 99 => {
                     return Ok(IntcodeComputerState::Halted);
                 },
@@ -164,12 +175,6 @@ impl IntcodeComputer {
             }
         }
     }
-}
-
-fn read() -> io::Result<String> {
-    let mut buffer = String::new();
-    io::stdin().read_line(&mut buffer)?;
-    Ok(buffer)
 }
 
 fn load_input(path: &str) -> Vec<i64> {
