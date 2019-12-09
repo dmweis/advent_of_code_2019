@@ -12,6 +12,18 @@ pub fn one() {
     }
 }
 
+pub fn two() {
+    let mut computer = IntcodeComputer::new_from_file("input/day_nine.txt");
+    computer.provide_input(2);
+    loop {
+        match computer.run().unwrap() {
+            IntcodeComputerState::Halted => break,
+            IntcodeComputerState::OutputProduced(output) => println!("Output {}", output),
+            IntcodeComputerState::WaitingForInput => panic!("Unexpected waiting for input"),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
