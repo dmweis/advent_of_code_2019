@@ -21,6 +21,7 @@ pub struct IntcodeComputer {
     instruction_pointer: i32,
     relative_base: i32,
     input_queue: VecDeque<i64>,
+    output: Vec<i64>,
 }
 
 impl IntcodeComputer {
@@ -35,6 +36,7 @@ impl IntcodeComputer {
             instruction_pointer: 0,
             relative_base: 0,
             input_queue: VecDeque::new(),
+            output: vec![],
         }
     }
 
@@ -89,6 +91,20 @@ impl IntcodeComputer {
         memory_vec
     }
 
+    pub fn get_output(&self) -> Vec<i64> {
+        self.output.clone()
+    }
+
+    pub fn run_ignore_output(&mut self) -> Result<IntcodeComputerState, Box<dyn Error>> {
+        loop {
+            match self.run()? {
+                IntcodeComputerState::Halted => return Ok(IntcodeComputerState::Halted),
+                IntcodeComputerState::WaitingForInput => return Ok(IntcodeComputerState::WaitingForInput),
+                IntcodeComputerState::OutputProduced(_) => (),
+            }
+        }
+    }
+
     pub fn run(&mut self) -> Result<IntcodeComputerState, Box<dyn Error>> {
         loop {
             // let op = self.memory.get(&self.instruction_pointer)
@@ -124,6 +140,7 @@ impl IntcodeComputer {
                     // output
                     let output = self.load_param(&(self.instruction_pointer + 1), get_param_mode(op, 0))?;
                     self.instruction_pointer += 2;
+                    self.output.push(output);
                     return Ok(IntcodeComputerState::OutputProduced(output));
                 },
                 5 => {
@@ -217,21 +234,6 @@ mod tests {
         assert_eq!(get_param_mode(&1002, 2), ParamMode::PositionMode);
     }
 
-    // #[test]
-    // fn test_load_param_immediate() {
-    //     let data = vec![7];
-
-    //     let computer = IntcodeComputer::new(vec![])
-
-    //     assert_eq!(load_param(&data, 0, ParamMode::ImmediateMode), 7);
-    // }
-
-    // #[test]
-    // fn test_load_param_position() {
-    //     let data = vec![2, 4, 5, 6];
-    //     assert_eq!(load_param(&data, 0, ParamMode::PositionMode), 5);
-    // }
-
     #[test]
     fn test_computer_one() {
         let input = vec![1002, 4, 3, 4, 33];
@@ -252,15 +254,9 @@ mod tests {
     fn test_computer_input() {
         let program = load_input("input/day_five.txt");
         let mut computer = IntcodeComputer::new(program);
-        let mut output = -1;
-        loop {
-            match computer.run().unwrap() {
-                IntcodeComputerState::Halted => break,
-                IntcodeComputerState::OutputProduced(res) => output = res,
-                IntcodeComputerState::WaitingForInput => computer.provide_input(1)
-            }
-        }
-        assert_eq!(output, 9006673);
+        computer.provide_input(1);
+        computer.run_ignore_output().unwrap();
+        assert_eq!(computer.get_output(), vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 9006673]);
     }
 
     #[test]

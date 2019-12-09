@@ -64,7 +64,7 @@ mod tests {
     }
 
     #[test]
-    fn into_code_computer_self_test() {
+    fn int_code_computer_self_test() {
         let mut computer = IntcodeComputer::new_from_file("input/day_nine.txt");
         computer.provide_input(1);
         loop {
@@ -74,5 +74,13 @@ mod tests {
                 IntcodeComputerState::WaitingForInput => panic!("Unexpected waiting for input"),
             }
         }
+    }
+
+    #[test]
+    fn int_computer_extended_self_test() {
+        let mut computer = IntcodeComputer::new_from_file("input/day_nine.txt");
+        computer.provide_input(2);
+        computer.run_ignore_output().unwrap();
+        assert_eq!(computer.get_output(), vec![87023])
     }
 }
