@@ -1,5 +1,5 @@
 use crate::intcode_computer::*;
-use crate::intcode_computer_object::*;
+use crate::infinite_memory_intcomputer::*;
 use itertools::*;
 use std::error;
 
@@ -43,8 +43,8 @@ fn run_all_thursters_together(
     let mut computers = vec![];
     for phase in phase_sequence {
         let mut computer = IntcodeComputer::new(program.clone());
-        computer.run();
-        computer.provide_input(phase).unwrap();
+        computer.run()?;
+        computer.provide_input(phase);
         computers.push(computer);
     }
     let mut last_output = Some(0);
@@ -52,9 +52,9 @@ fn run_all_thursters_together(
     while !done {
         for computer in &mut computers {
             loop {
-                match computer.run() {
+                match computer.run()? {
                     IntcodeComputerState::WaitingForInput => {
-                        computer.provide_input(last_output.unwrap())?;
+                        computer.provide_input(last_output.unwrap());
                         last_output = None;
                     },
                     IntcodeComputerState::OutputProduced(output) => {
