@@ -13,9 +13,10 @@ mod infinite_memory_intcomputer;
 mod day_nine;
 mod day_eleven;
 mod day_twelve;
+mod day_thirteen;
 
-use day_twelve::*;
+use day_thirteen::*;
 
 fn main() {
-    one();
+    two();
 }

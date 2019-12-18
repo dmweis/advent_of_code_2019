@@ -10,7 +10,7 @@ pub enum IntcodeComputerState {
 }
 
 #[derive(PartialEq, Debug)]
-enum ParamMode {
+pub enum ParamMode {
     PositionMode,
     ImmediateMode,
     RelativeMode,
@@ -48,6 +48,7 @@ impl IntcodeComputer {
         self.input_queue.push_back(input);
     }
 
+
     fn read_memory(&self, location: &i32) -> Result<i64, Box<dyn Error>> {
         if location < &0 {
             Err("Accessing memory in negative index")?;
@@ -55,7 +56,7 @@ impl IntcodeComputer {
         Ok(*self.memory.get(&location).unwrap_or(&0))
     }
 
-    fn write_memory(&mut self, location: i32, value: i64, mode: ParamMode) -> Result<(), Box<dyn Error>> {
+    pub fn write_memory(&mut self, location: i32, value: i64, mode: ParamMode) -> Result<(), Box<dyn Error>> {
         let location = match mode {
             ParamMode::ImmediateMode => panic!("wrong param mode for write"),
             ParamMode::PositionMode => location,
