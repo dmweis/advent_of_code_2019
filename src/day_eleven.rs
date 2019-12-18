@@ -87,6 +87,46 @@ pub fn one() {
     println!("{:?}", robot.painted_panels);
 }
 
+pub fn two() {
+    let mut robot = Robot::new();
+    robot.map.insert((0, 0), WHITE);
+    robot.run().unwrap();
+    let mut picture = robot.map.clone();
+    picture.insert((0, 0), 3);
+
+    let mut top_left = (std::i32::MAX, std::i32::MAX);
+    let mut bottom_right = (std::i32::MIN, std::i32::MIN);
+    for point in picture.keys() {
+        if point.0 < top_left.0 {
+            top_left.0 = point.0
+        }
+        if point.1 < top_left.1 {
+            top_left.1 = point.1
+        }
+        if point.0 > bottom_right.0 {
+            bottom_right.0 = point.0
+        }
+        if point.1 > bottom_right.1 {
+            bottom_right.1 = point.1
+        }
+    }
+    println!("tl {:?}", top_left);
+    println!("br {:?}", bottom_right);
+    for x in top_left.0..(bottom_right.0+1) {
+        for y in top_left.1..(bottom_right.1+1) {
+            let pixel = picture.get(&(x, y)).unwrap_or(&BLACK);
+            if pixel == &WHITE {
+                print!("#");
+            } else if pixel == &BLACK {
+                print!(" ");
+            } else {
+                print!("O")
+            }
+        }
+        println!("");
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -97,5 +137,13 @@ mod tests {
         let mut robot = Robot::new();
         robot.run().unwrap();
         assert_eq!(2469, robot.painted_panels);
+    }
+
+    #[test]
+    fn day_11_task_2() {
+        let mut robot = Robot::new();
+        robot.map.insert((0, 0), WHITE);
+        robot.run().unwrap();
+        assert_eq!(248, robot.painted_panels);
     }
 }
