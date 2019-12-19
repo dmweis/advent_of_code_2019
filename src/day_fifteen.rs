@@ -282,9 +282,3 @@ pub fn one() {
     println!("\nPath length is {}", path_len);
     println!("time to fill is {}", time_to_fill);
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-}

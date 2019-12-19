@@ -112,9 +112,3 @@ pub fn two() {
         y+=1;
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-}
