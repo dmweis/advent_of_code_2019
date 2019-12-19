@@ -79,12 +79,21 @@ impl Map {
         for element in path.iter().skip(1) {
             self.points.insert(element.clone(), SOLUTION_PATH);
             self.render();
-            thread::sleep(time::Duration::from_millis(20));
+            thread::sleep(time::Duration::from_millis(10));
         }
     }
 
     fn get_point(&self, point: &(i32, i32)) -> i32 {
         *self.points.get(point).unwrap_or(&UNKNOWN)
+    }
+
+    fn get_oxygen(&self) -> Option<(i32, i32)> {
+        for (key, value) in &self.points {
+            if value == &OXYGEN {
+                return Some(key.clone())
+            }
+        }
+        None
     }
 
     fn contains(&self, point: &(i32, i32)) -> bool {
@@ -113,6 +122,32 @@ impl Map {
             println!("");
         }
         self.last_drawn_lines = Some(lines);
+    }
+
+    fn render_with_air(&self, air: &HashSet<(i32, i32)>, steps: &i32) {
+        if let Some(lines) = self.last_drawn_lines {
+            println!("\x1b[{}F", lines + 1);
+        }
+        for y in self.top_left.1..(self.bottom_right.1+1) {
+            for x in self.top_left.0..(self.bottom_right.0+1) {
+                if air.contains(&(x, y)) {
+                    print!("#");
+                    continue;
+                }
+                let pixel = self.points.get(&(x, y)).unwrap_or(&UNKNOWN);
+                match pixel {
+                    &SPACE => print!(" "),
+                    &WALL => print!("█"),
+                    &OXYGEN => print!("╳"),
+                    &UNKNOWN => print!("▒"),
+                    &ROBOT => print!("O"),
+                    &SOLUTION_PATH => print!("."),
+                    _ => panic!("unknown pixel")
+                }
+            }
+            println!("");
+        }
+        print!("Steps: {}", steps);
     }
 }
 
@@ -206,6 +241,34 @@ impl Robot {
         }
         Err(())
     }
+
+    fn fill_room(&self) -> i32 {
+        let mut visited = HashSet::new();
+        let mut seen = VecDeque::new();
+        let mut max_counter = 0;
+
+        let oxygen_pos = self.map.get_oxygen().unwrap();
+        seen.push_front((oxygen_pos, -1));
+        while let Some((position, counter)) = seen.pop_back() {
+            if counter > max_counter {
+                max_counter = counter;
+                self.map.render_with_air(&visited, &max_counter);
+                thread::sleep(time::Duration::from_millis(50));
+            }
+            if visited.contains(&position) {
+                continue;
+            }
+            visited.insert(position.clone());
+            for direction in vec![NORTH, SOUTH, WEST, EAST] {
+                let new_pos = shift_position(&position, &direction);
+                let point = self.map.get_point(&new_pos);
+                if point != WALL && point != UNKNOWN  {
+                    seen.push_front((new_pos, counter+1));
+                }
+            }
+        }
+        max_counter
+    }
 }
 
 pub fn one() {
@@ -215,7 +278,9 @@ pub fn one() {
     let path = robot.shortest_path().unwrap();
     let path_len = path.len();
     robot.map.mark_path(path);
-    println!("Path length is {}", path_len);
+    let time_to_fill = robot.fill_room();
+    println!("\nPath length is {}", path_len);
+    println!("time to fill is {}", time_to_fill);
 }
 
 #[cfg(test)]
