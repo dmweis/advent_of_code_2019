@@ -20,5 +20,5 @@ mod day_nineteen;
 use day_nineteen::*;
 
 fn main() {
-    one();
+    two();
 }

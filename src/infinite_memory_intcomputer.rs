@@ -16,6 +16,7 @@ pub enum ParamMode {
     RelativeMode,
 }
 
+#[derive(Clone)]
 pub struct IntcodeComputer {
     memory: HashMap<i32, i64>,
     instruction_pointer: i32,
