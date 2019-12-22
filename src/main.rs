@@ -17,8 +17,9 @@ mod day_thirteen;
 mod day_fifteen;
 mod day_seventeen;
 mod day_nineteen;
+mod day_twenty;
 
-use day_seventeen::*;
+use day_twenty::*;
 
 fn main() {
     one();
