@@ -1,5 +1,6 @@
 use std::fs;
 use std::collections::{HashMap, VecDeque, HashSet};
+use std::time::Instant;
 
 fn get_input() -> String {
     fs::read_to_string("input/day_twenty.txt")
@@ -66,6 +67,15 @@ impl Map {
         for y in self.top_left.1..(self.bottom_right.1+1) {
             for x in self.top_left.0..(self.bottom_right.0+1) {
                 let pixel = self.points.get(&(x, y)).unwrap_or(&NOTHING);
+                let pixel = if pixel == &PORTAL {
+                    if self.is_edge_portal(&(x, y)) {
+                        '1'
+                    } else {
+                        '2'
+                    }
+                } else {
+                    *pixel
+                };
                 print!("{}", pixel);
             }
             lines+=1;
@@ -195,6 +205,78 @@ impl Map {
         None
     }
 
+    fn bfs_with_layers(&self) -> Option<Vec<(i32, i32)>> {
+        let mut visited: HashMap<i32, HashSet<(i32, i32)>> = HashMap::new();
+        let mut paths = VecDeque::new();
+        paths.push_back((vec![self.start.unwrap().clone()], 0));
+        while let Some((path, layer)) = paths.pop_front() {
+            if !visited.contains_key(&layer) {
+                visited.insert(layer, HashSet::new());
+            }
+            let current = path.iter().last().unwrap().clone();
+            if visited[&layer].contains(&current) {
+                continue;
+            }
+            visited.get_mut(&layer).unwrap().insert(current);
+            for target in vec![
+                (current.0+1, current.1),
+                (current.0-1, current.1),
+                (current.0, current.1+1),
+                (current.0, current.1-1)
+            ] {
+                if target == self.end.unwrap() && layer == 0{
+                    return Some(path.clone());
+                }
+                let target_point = self.get_point(&target);
+                if target_point == EMPTY {
+                    let mut new_path = path.clone();
+                    new_path.push(target);
+                    paths.push_back((new_path, layer));
+                } else if target_point == PORTAL {
+                    // skip if blocked
+                    if layer < 1 && self.is_edge_portal(&target) {
+                        continue;
+                    }
+                    let portal_exit = *self.portals.get(&target).unwrap();
+                    for portal_exit_point in vec![
+                        (portal_exit.0+1, portal_exit.1),
+                        (portal_exit.0-1, portal_exit.1),
+                        (portal_exit.0, portal_exit.1+1),
+                        (portal_exit.0, portal_exit.1-1)
+                    ] {
+                        if self.get_point(&portal_exit_point) == EMPTY {
+                            let mut new_path = path.clone();
+                            new_path.push(portal_exit_point);
+                            if self.is_edge_portal(&target) {
+                                paths.push_back((new_path, layer-1));
+                            } else {
+                                paths.push_back((new_path, layer+1));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    fn is_edge_portal(&self, portal: &(i32, i32)) -> bool {
+        if portal.1 <= self.top_left.1 + 2 {
+            // top
+            return true
+        } else if portal.1 >= self.bottom_right.1 - 2 {
+            // bottom 
+            return true
+        } else if portal.0 <= self.top_left.0 + 2 {
+            // left
+            return true
+        } else if portal.0 >= self.bottom_right.0 -2 {
+            // right
+            return true
+        }
+        false
+    }
+
     fn height(&self) -> i32 {
         self.top_left.1.abs() + self.bottom_right.1 + 1
     }
@@ -221,7 +303,6 @@ pub fn one() {
     map.mark_portals();
     map.render();
 
-    
     println!("height {}", map.height());
     println!("width {}", map.width());
     let path = map.bfs().unwrap();
@@ -229,13 +310,8 @@ pub fn one() {
     println!("{:?}", path.len()-2);
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    
-    #[test]
-    fn day_20_task_1(){
-        let input = get_input();
+pub fn two() {
+    let input = get_input();
     let mut map = Map::new();
 
     for (y, line) in input.lines().enumerate() {
@@ -245,9 +321,57 @@ mod tests {
             }
         }
     }
+    map.render();
     map.scan_portals();
     map.mark_portals();
-    let path = map.bfs().unwrap();
-    assert_eq!(684, path.len()-2);
+    map.render();
+
+    println!("height {}", map.height());
+    println!("width {}", map.width());
+    let start = Instant::now();
+    let path = map.bfs_with_layers().unwrap();
+    map.render_with_path(&path);
+    println!("{:?}", path.len()-2);
+    println!("Took {} seconds", start.elapsed().as_secs_f32());
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn day_20_task_1(){
+        let input = get_input();
+        let mut map = Map::new();
+
+        for (y, line) in input.lines().enumerate() {
+            for (x, letter) in line.chars().enumerate() {
+                if letter != ' ' {
+                    map.insert((x as i32, y as i32), letter);
+                }
+            }
+        }
+        map.scan_portals();
+        map.mark_portals();
+        let path = map.bfs().unwrap();
+        assert_eq!(684, path.len()-2);
+    }
+
+    #[test]
+    fn day_20_task_2(){
+        let input = get_input();
+        let mut map = Map::new();
+
+        for (y, line) in input.lines().enumerate() {
+            for (x, letter) in line.chars().enumerate() {
+                if letter != ' ' {
+                    map.insert((x as i32, y as i32), letter);
+                }
+            }
+        }
+        map.scan_portals();
+        map.mark_portals();
+        let path = map.bfs_with_layers().unwrap();
+        assert_eq!(7758, path.len()-2);
     }
 }
