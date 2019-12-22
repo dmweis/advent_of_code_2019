@@ -114,7 +114,7 @@ impl Map {
                     &OXYGEN => print!("╳"),
                     &UNKNOWN => print!("▒"),
                     &ROBOT => print!("O"),
-                    &SOLUTION_PATH => print!("."),
+                    &SOLUTION_PATH => print!("*"),
                     _ => panic!("unknown pixel")
                 }
             }
@@ -141,7 +141,7 @@ impl Map {
                     &OXYGEN => print!("╳"),
                     &UNKNOWN => print!("▒"),
                     &ROBOT => print!("O"),
-                    &SOLUTION_PATH => print!("."),
+                    &SOLUTION_PATH => print!("*"),
                     _ => panic!("unknown pixel")
                 }
             }
@@ -253,7 +253,7 @@ impl Robot {
             if counter > max_counter {
                 max_counter = counter;
                 self.map.render_with_air(&visited, &max_counter);
-                thread::sleep(time::Duration::from_millis(50));
+                thread::sleep(time::Duration::from_millis(20));
             }
             if visited.contains(&position) {
                 continue;
