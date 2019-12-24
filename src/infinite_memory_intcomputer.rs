@@ -23,6 +23,7 @@ pub struct IntcodeComputer {
     relative_base: i32,
     input_queue: VecDeque<i64>,
     output: Vec<i64>,
+    output_queue: VecDeque<i64>,
 }
 
 impl IntcodeComputer {
@@ -38,6 +39,7 @@ impl IntcodeComputer {
             relative_base: 0,
             input_queue: VecDeque::new(),
             output: vec![],
+            output_queue: VecDeque::new(),
         }
     }
 
@@ -49,6 +51,11 @@ impl IntcodeComputer {
         self.input_queue.push_back(input);
     }
 
+    pub fn provide_input_iter<T: IntoIterator<Item=i64>>(&mut self, input: T) {
+        for value in input {
+            self.input_queue.push_back(value);
+        }
+    }
 
     fn read_memory(&self, location: &i32) -> Result<i64, Box<dyn Error>> {
         if location < &0 {
@@ -97,6 +104,14 @@ impl IntcodeComputer {
         self.output.clone()
     }
 
+    pub fn pop_output(&mut self) -> Vec<i64> {
+        let mut output = vec![];
+        while let Some(val) = self.output_queue.pop_front() {
+            output.push(val);
+        }
+        output
+    }
+
     pub fn run_ignore_output(&mut self) -> Result<IntcodeComputerState, Box<dyn Error>> {
         loop {
             match self.run()? {
@@ -143,6 +158,7 @@ impl IntcodeComputer {
                     let output = self.load_param(&(self.instruction_pointer + 1), get_param_mode(op, 0))?;
                     self.instruction_pointer += 2;
                     self.output.push(output);
+                    self.output_queue.push_back(output);
                     return Ok(IntcodeComputerState::OutputProduced(output));
                 },
                 5 => {
